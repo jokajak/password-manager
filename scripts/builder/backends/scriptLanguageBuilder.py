@@ -10,11 +10,17 @@ class ScriptLanguageBuilder(BackendBuilder):
 		src = self.sourceFolder()
 		dst = self.tempFolder()
 
-		shutil.copytree(src, dst)
+		try:
+			shutil.copytree(src, dst)
+		except:
+			pass
 
 
 	def createPackage (self):
 		src = self.tempFolder()
 		dst = self.targetFolder()
 
-		shutil.copytree(src, dst)
+		try:
+			shutil.copytree(src, dst)
+		except:
+			pass
