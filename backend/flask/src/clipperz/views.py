@@ -111,33 +111,17 @@ def dump(frontend_version):
     return response
 
 
-@app.route('/beta/<path:path>')
-def beta(path):
-    """Fallback for serving beta version."""
-    here = dirname(__file__)
-    file_path = "{0}/../beta/".format(here)
-    return send_from_directory(file_path, path)
-
-
-@app.route('/gamma/<path:path>')
-def gamma(path):
-    """Fallback for serving gamma version."""
-    here = dirname(__file__)
-    file_path = "{0}/../gamma/".format(here)
-    return send_from_directory(file_path, path)
-
-
-@app.route('/delta/<path:path>')
-def delta(path):
-    """Fallback for serving delta version."""
-    here = dirname(__file__)
-    file_path = "{0}/../delta/".format(here)
-    return send_from_directory(file_path, path)
-
-
-@app.route('/pm', methods=['GET', 'OPTIONS', 'POST'])
-def pm():
+@app.route('/',
+           defaults={'path': 'index.html'},
+           methods=['GET', 'OPTIONS', 'POST']
+           )
+@app.route('/<path:path>')
+def pm(path='delta/index.html'):
     """Main request handler."""
+    if request.method == 'GET':
+        here = dirname(__file__)
+        file_path = "{0}/../".format(here)
+        return send_from_directory(file_path, path)
     method = request.form['method']
     if method not in globals():
         app.logger.error(method)
