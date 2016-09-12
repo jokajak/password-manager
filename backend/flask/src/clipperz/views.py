@@ -5,7 +5,7 @@ from .models import User
 from .api import *  # NOQA
 from .exceptions import InvalidUsage
 from flask.ext.login import login_required
-from os.path import dirname
+from os.path import dirname, join
 
 
 @lm.user_loader
@@ -98,7 +98,7 @@ def dump(frontend_version):
         '.fastEntropyAccumulationForTestingPurpose();'
         '\n').format(user_data=user_data)
 
-    with open(os.path.join(APP_ROOT,
+    with open(join(APP_ROOT,
                            '{0}/index.html'.format(frontend_version))) as f:
         offline_dump = f.read()
 
