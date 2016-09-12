@@ -1,5 +1,5 @@
 """Clipperz views."""
-from flask import session, request, g, send_from_directory
+from flask import session, request, g, send_from_directory, make_response
 from clipperz import app, db, lm
 from .models import User
 from .api import *  # NOQA
