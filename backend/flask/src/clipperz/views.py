@@ -98,8 +98,8 @@ def dump(frontend_version):
         '.fastEntropyAccumulationForTestingPurpose();'
         '\n').format(user_data=user_data)
 
-    with open(join(APP_ROOT,
-                           '{0}/index.html'.format(frontend_version))) as f:
+    with open(join(dirname(__file__), '..', 
+                           frontend_version, 'index.html')) as f:
         offline_dump = f.read()
 
     offline_dump = offline_dump.replace('/*offline_data_placeholder*/',
