@@ -94,6 +94,10 @@ class RecordVersion(db.Model):
             self.record_id = record.id
         self.creation_date = datetime.datetime.utcnow()
 
+    def __repr__(self):
+        """Record Version representation."""
+        return '%r' % (self.reference)
+
     def update(self, someData):
         """Update a record version."""
         app.logger.debug(someData)
@@ -141,6 +145,10 @@ class Record(db.Model):
             self.user_id = user.id
         self.version = 1
         self.creation_date = datetime.datetime.utcnow()
+
+    def __repr__(self):
+        """Record representation."""
+        return '%r' % (self.reference)
 
     def update(self, data, record_version):
         """Update a record."""
