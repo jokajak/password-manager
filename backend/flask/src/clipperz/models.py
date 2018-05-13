@@ -1,5 +1,6 @@
 """Clipperz models."""
 import datetime
+import json
 
 from flask.ext.login import UserMixin
 

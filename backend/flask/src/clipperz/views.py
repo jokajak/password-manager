@@ -6,6 +6,8 @@ from .api import *  # NOQA
 from .exceptions import InvalidUsage
 from flask.ext.login import login_required
 from os.path import dirname, join
+import json
+from datetime import timedelta
 
 
 @lm.user_loader
@@ -23,15 +25,19 @@ def before_request():
     g.user = current_user
 
 
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(minutes=5)
+
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     """Remove the session from the database."""
     db.session.remove()
 
 
-@app.route('/beta/dump/<string:frontend_version>')
-@app.route('/gamma/dump/<string:frontend_version>')
-@app.route('/delta/dump/<string:frontend_version>')
+@app.route('/dump/<string:frontend_version>')
 @login_required
 def dump(frontend_version):
     """Return JSON for a user's data."""
@@ -114,10 +120,10 @@ def dump(frontend_version):
 
 
 @app.route('/',
-           defaults={'path': 'index.html'},
+           defaults={'path': 'delta/index.html'},
            methods=['GET', 'OPTIONS', 'POST']
            )
-@app.route('/<path:path>')
+@app.route('/<path:path>', methods=['GET', 'OPTIONS', 'POST'])
 def pm(path='delta/index.html'):
     """Main request handler."""
     if request.method == 'GET':
