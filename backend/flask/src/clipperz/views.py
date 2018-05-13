@@ -1,11 +1,11 @@
 """Clipperz views."""
-from flask import session, request, g, send_from_directory
+from flask import session, request, g, send_from_directory, make_response
 from clipperz import app, db, lm
 from .models import User
 from .api import *  # NOQA
 from .exceptions import InvalidUsage
 from flask.ext.login import login_required
-from os.path import dirname
+from os.path import dirname, join
 
 
 @lm.user_loader
@@ -62,20 +62,20 @@ def dump(frontend_version):
         for version in current_record.record_versions:
             versions[version.reference] = {
                 'header':       version.header,
-                'data':         version.data,
-                'version':      version.api_version,
+                'data':         str(version.data),
+                'version':      str(version.api_version),
                 'creationDate': str(version.creation_date),
                 'updateDate':   str(version.update_date),
                 'accessDate':   str(version.access_date)
             }
 
         records[current_record.reference] = {
-            'data':             current_record.data,
-            'version':          current_record.version,
+            'data':             str(current_record.data),
+            'version':          str(current_record.api_version),
             'creationDate':     str(current_record.creation_date),
             'updateDate':       str(current_record.update_date),
             'accessDate':       str(current_record.access_date),
-            'currentVersion':   current_record.current_record_version,
+            'currentVersion':   str(current_record.current_record_version.data),
             'versions':         versions
         }
 
@@ -91,15 +91,17 @@ def dump(frontend_version):
     }
 
     offline_data_placeholder = (
-        '_clipperz_data_ = {user_data}\n'
-        'Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline();'
-        '\n'
-        'Clipperz.Crypto.PRNG.defaultRandomGenerator()'
-        '.fastEntropyAccumulationForTestingPurpose();'
-        '\n').format(user_data=user_data)
+        '''
+           NETWORK = npm.bitcoin.networks.bitcoin;
+           Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.JSON({{'url':'../json', 'shouldPayTolls':true}});
+           _clipperz_dump_data_ = {user_data}
+           Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({{'type':'OFFLINE_COPY', 'typeDescription':'Offline copy'}});
+           Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
+        ''').format(user_data=json.dumps(user_data))
 
-    with open(os.path.join(APP_ROOT,
-                           '{0}/index.html'.format(frontend_version))) as f:
+
+    with open(join(dirname(__file__), '..', 
+                           frontend_version, 'index.html')) as f:
         offline_dump = f.read()
 
     offline_dump = offline_dump.replace('/*offline_data_placeholder*/',
