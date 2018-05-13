@@ -1,4 +1,3 @@
-import datetime
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -19,8 +18,6 @@ class Config(object):
     TESTING = False
     CSRF_ENABLED = True
     WTF_CSRF_ENABLED = True
-    SECRET_KEY = 'you-will-never-guess'
-    sessionTimeout = datetime.timedelta(minutes=-2)
 
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI
