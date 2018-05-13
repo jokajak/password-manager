@@ -16,6 +16,9 @@ db = SQLAlchemy(app)
 store = SQLAlchemyStore(db.engine, db.metadata, 'sessions')
 kvsession = KVSessionExtension(store, app)
 
+# Generate a secret random key for the session
+app.secret_key = os.urandom(24)
+
 if not app.debug and os.environ.get('HEROKU') is None:
     import logging
     from logging.handlers import RotatingFileHandler
