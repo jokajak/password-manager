@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+from __future__ import print_function
+
 import sys, os, re
 import cssmin
 import jsmin
 import codecs
 import shutil
-import StringIO
 import urllib
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 import main
 
@@ -53,16 +58,16 @@ class FrontendBuilder(object):
 		module = self.module
 		if (self.module != self.submodule):
 			module = module + "." + self.submodule
-		print "frontend [" + module + "]: " + message
-	
+		print("frontend [" + module + "]: " + message)
+
 
 	def absolutePathForSources (self):
 		return os.path.join(self.projectDir, 'frontend', self.module)
 
-	
+
 	def absolutePathForSourceFile (self, basePath, file):
 		return os.path.join(self.absolutePathForSources(), basePath, file)
-	
+
 
 	def absolutePathForTargetFile (self, folder, basePath, file):
 		return os.path.join(folder, self.module, basePath, file)
@@ -70,13 +75,13 @@ class FrontendBuilder(object):
 
 	def filterFiles (self, files):
 		result = []
-		
+
 		for file in files:
 			if file.startswith('--'):
 				pass
 			else:
 				result.append(file)
-			
+
 		return result
 
 
@@ -98,13 +103,13 @@ class FrontendBuilder(object):
 #			except:
 #				pass
 
-		
+
 
 #	def copyResourcesToFolder (self, targetFolder, backendSettings):
 #		for resoureceType in self.projectResourceTypes():
 #			self.copyResources(self.projectDir, targetFolder, resoureceType)
 #		self.copyStaticResources(targetFolder)
-	
+
 	def copyDebugResourcesToFolder (self, targetFolder):
 		for resoureceType in self.projectResourceTypes():
 			self.copyResources(self.projectDir, targetFolder, resoureceType)
@@ -112,16 +117,16 @@ class FrontendBuilder(object):
 
 	def loadIndividualFilesContent (self, basePath, files):
 		result = {}
-		
+
 		for file in self.filterFiles(files):
 			try:
 				fileHandler = codecs.open(self.absolutePathForSourceFile(basePath, file), 'r', 'utf-8')
 			except:
-				print "FILE: " + file
+				print("FILE: " + file)
 
 			result[file] = fileHandler.read()
 			fileHandler.close()
-		
+
 		return result
 
 
@@ -131,27 +136,27 @@ class FrontendBuilder(object):
 		fileContent = self.loadIndividualFilesContent(basePath, files)
 		for file in self.filterFiles(files):
 			result += fileContent[file] + '\n'
-		
+
 		return result
 
 
 #	def packFilesContent (self, filesContent):
 #		result = ""
-#		
+#
 #		for name, content in filesContent:
 #			result += content + '\n'
-#			
+#
 #		return result
 
 
 	def template (self):
 		processedFile = 'html_template'
-		if not self.processedFiles.has_key(processedFile):
+		if (processedFile not in self.processedFiles):
 		#	self.processedFiles[processedFile] = self.loadFilesContent('html', ['index_template.html'])
 			self.processedFiles[processedFile] = self.loadFilesContent('html', [self.settings['html.template']])
-			
+
 		return self.processedFiles[processedFile]
-	
+
 
 	#==========================================================================
 
@@ -160,11 +165,11 @@ class FrontendBuilder(object):
 		# - http://stackoverflow.com/questions/222581/python-script-for-minifying-css/2396777#2396777
 		# actual downloaded version: http://pypi.python.org/pypi/cssmin/0.1.4 -> 0.2.0
 		return cssmin.cssmin(css)
-	
+
 
 	def regexCssCompressor (self, css):
 		# http://stackoverflow.com/questions/222581/python-script-for-minifying-css/223689#223689
-		
+
 		# remove comments - this will break a lot of hacks :-P
 		css = re.sub( r'\s*/\*\s*\*/', "$$HACK1$$", css ) # preserve IE<6 comment hack
 		css = re.sub( r'/\*[\s\S]*?\*/', "", css )
@@ -194,11 +199,11 @@ class FrontendBuilder(object):
 		        key = prop[0].strip().lower()
 		        if key not in porder: porder.append( key )
 		        properties[ key ] = prop[1].strip()
-		
+
 		    # output rule if it contains any declarations
 		    if properties:
-		        print "%s{%s}" % ( ','.join( selectors ), ''.join(['%s:%s;' % (key, properties[key]) for key in porder])[:-1] )
-		
+		        print("%s{%s}" % ( ','.join( selectors ), ''.join(['%s:%s;' % (key, properties[key]) for key in porder])[:-1] ))
+
 		return css
 
 
@@ -218,32 +223,32 @@ class FrontendBuilder(object):
 
 	def compressJS_jsmin (self, js, description):
 		self.log("compressing " + description + " code")
-		original = StringIO.StringIO(js)
-		output = StringIO.StringIO()
-		
+		original = StringIO(js)
+		output = StringIO()
+
 		jsMinifier = jsmin.JavascriptMinify()
 		jsMinifier.minify(original, output)
-		
+
 		result = output.getvalue()
-		
+
 		original.close()
 		output.close()
-		
+
 		return result
 
 	def compressJS_closureCompiler (self, js, description):
 		#	Googles Closure compiler
 		#	java -jar compiler.jar --js=in1.js --js=in2.js ... --js_output_file=out.js
-		
+
 		result = js
-		
+
 		return result
-	
+
 
 	def compressJS (self, js, description):
 		return self.compressJS_jsmin(js, description)
 		#return self.compressJS_closureCompiler(js, description)
-	
+
 
 	#==========================================================================
 
@@ -263,14 +268,14 @@ class FrontendBuilder(object):
 			('inputElementValues',		'iev'),
 		]
 		result = self.compressJS(bookmakeletCode, version + " bookmarklet")
-		
+
 		result = re.sub('\n', ' ', result)	#	Fit all in a single line
 		# result = re.sub('\s+', ' ', result)	#	Collapse "redundant" spaces. WARNING: this could have some evil side effects on constant strings used inside to code!!
 		# result = re.sub('\s?([,\+=\(\)\{\};])\s?', '\\1', result)
-		
+
 		for replacer in replacers:
 			result = re.sub(replacer[0], replacer[1], result)
-		
+
 #		<!--	escaping required to handle the bookmarklet code within the javascript code		-->
 		result = re.sub('\://',		'%3a%2f%2f',	result)
 		result = re.sub('/',		'%2f',			result)
@@ -281,26 +286,26 @@ class FrontendBuilder(object):
 		result = re.sub('\\\\',		'%5c',			result)
 		result = result.strip()
 		result = 'javascript:' + result
-		
+
 		return result
-	
+
 
 	def bookmarklet (self):
 		cacheKey = 'bookmarklet'
-		if not self.processedFiles.has_key(cacheKey):
+		if (cacheKey not in self.processedFiles):
 			result = 'bookmarklet="' + self.packBookmarklet(self.loadFilesContent('js', ['Bookmarklet.js']), "regular") + '";bookmarklet_ie="' + self.packBookmarklet(self.loadFilesContent('js', ['Bookmarklet_IE.js']), "IE") + '";'
 			self.processedFiles[cacheKey] = result
 		else:
 			result = self.processedFiles[cacheKey]
-		
+
 		return result
-	
+
 
 	#==========================================================================
 
 	def replaceTemplatePlaceholders (self, pageTitle, copyright, css, code, jsLoadMode, version, versionType):
 		result = self.template()
-		
+
 		result = result.replace('@page.title@',					pageTitle)
 		result = result.replace('@copyright@',					copyright)
 		result = result.replace('@css@',						css)
@@ -312,54 +317,54 @@ class FrontendBuilder(object):
 		result = re.sub('@js_[^@]+@', '', result)
 
 		return result
-	
+
 
 	def assembleCopyrightHeader (self):
 		processedFile = 'copyright'
-		if not self.processedFiles.has_key(processedFile):
+		if (processedFile not in self.processedFiles):
 			#self.log("assembling copyright header")
 			copyrightValues = self.settings['copyright.values']
 			license = self.loadFilesContent('../../properties', ['license.txt'])
 			result  = self.loadFilesContent('properties', ['creditsAndCopyrights.txt'])
-			
+
 			result = re.sub('@clipperz.license@', license, result)
 			for key in copyrightValues:
 				result = re.sub('@'+key+'@', copyrightValues[key], result)
-			
+
 			self.processedFiles[processedFile] = result
-			
+
 		return self.processedFiles[processedFile]
-	
+
 
 	def cssTagsForFiles (self, basePath, files):
 		#<link rel="stylesheet" type="text/css" href="./css/reset-min.css" />
 		return '\n'.join(map(lambda file: '<link rel="stylesheet" type="text/css" href="' + basePath + '/' + file + '" />', files))
-	
+
 
 	def cssTagForContent (self, content):
 		return '<style type="text/css">' + content + '</style>'
-	
+
 
 	def scriptTagsForFiles (self, basePath, files):
 		#<script type='text/javascript' src='./js/src/bookmarklet.js'></script>
 		return '\n'.join(map(lambda file: '<script type="text/javascript" src="' + basePath + '/' + file + '" charset="utf-8"></script>', files))
-	
+
 
 	def scriptTagForContent (self, content):
 		return '<script>' + content + '</script>'
-	
+
 
 	def assembleVersion (self, pageTitle, copyright, css, js, jsLoadMode, version, versionType):
 		cacheKey = version + "-" + versionType
-		if not self.processedFiles.has_key(cacheKey):
+		if (cacheKey not in self.processedFiles):
 			result = self.replaceTemplatePlaceholders(pageTitle, copyright, css, js, jsLoadMode, version, versionType)
 			self.processedFiles[cacheKey] = result
 		else:
 			result = self.processedFiles[cacheKey]
-		
+
 		#self.log("# cacheKey:\n" + result)
 		return result
-	
+
 
 	def assemble (self, assemblyMode='INSTALL', versionType='LIVE'):
 
@@ -415,7 +420,3 @@ class FrontendBuilder(object):
 			version			= self.repositoryVersion,
 			versionType		= versionType
 		)
-
-
-
-

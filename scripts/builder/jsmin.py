@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import os, os.path, shutil
 
 # This code is original from jsmin by Douglas Crockford, it was translated to
@@ -33,7 +35,11 @@ import os, os.path, shutil
 # SOFTWARE.
 # */
 
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+import re
 
 def jsmin(js):
     ins = StringIO(js)
@@ -224,7 +230,7 @@ def compress(in_files, out_file, in_type='js', verbose=False, temp_file='.temp')
 
         temp.write(data)
 
-        print ' + %s' % f
+        print(' + %s' % f)
     temp.close()
 
     out = open(out_file, 'w')
@@ -237,10 +243,10 @@ def compress(in_files, out_file, in_type='js', verbose=False, temp_file='.temp')
     org_size = os.path.getsize(temp_file)
     new_size = os.path.getsize(out_file)
 
-    print '=> %s' % out_file
-    print 'Original: %.2f kB' % (org_size / 1024.0)
-    print 'Compressed: %.2f kB' % (new_size / 1024.0)
-    print 'Reduction: %.1f%%' % (float(org_size - new_size) / org_size * 100)
-    print ''
+    print('=> %s' % out_file)
+    print('Original: %.2f kB' % (org_size / 1024.0))
+    print('Compressed: %.2f kB' % (new_size / 1024.0))
+    print('Reduction: %.1f%%' % (float(org_size - new_size) / org_size * 100))
+    print('')
 
     os.remove(temp_file)

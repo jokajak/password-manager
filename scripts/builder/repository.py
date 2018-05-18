@@ -14,11 +14,11 @@ def repositoryWithPath (path):
 			from git import Repo
 			repo = Repo(path)
 			result = GitRepository(repo, path)
-		except ImportError, exception:
-			print "Failed to import git, please install http://gitorious.org/git-python"
-			print "Use sudo apt-get install python-git for Ubuntu/Debian"
-			print "Use sudo yum install GitPython for Fedora/RHEL/CentOS"
-			print "Or manually running the following command: easy_install gitpython"
+		except ImportError:
+			print("Failed to import git, please install http://gitorious.org/git-python")
+			print("Use sudo apt-get install python-git for Ubuntu/Debian")
+			print("Use sudo yum install GitPython for Fedora/RHEL/CentOS")
+			print("Or manually running the following command: easy_install gitpython")
 		except:
 			result = SnapshotRepository('', path)
 
@@ -38,7 +38,7 @@ class Repository(object):
 
 	def revision (self):
 		raise NotImplementedError()
-	
+
 
 	def areTherePendingChanges (self):
 		raise NotImplementedError()
@@ -68,7 +68,7 @@ class GitRepository(Repository):
 	def areTherePendingChanges (self):
 		try:
 			return self.repository.is_dirty()
-		except TypeError, te:
+		except TypeError:
 			return self.repository.is_dirty
 
 
@@ -95,6 +95,6 @@ class SnapshotRepository(Repository):
 	def revision (self):
 		return 'SNAPSHOT'
 
- 
+
 	def areTherePendingChanges (self):
 		return False

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+from __future__ import print_function
+
 import sys
 import os
 import json
@@ -23,7 +25,7 @@ def scriptDir ():
 def projectBaseDir ():
 	return os.path.abspath(scriptDir() + '/../..')
 
-def projectTargetDir(): 
+def projectTargetDir():
 	return projectBaseDir() + '/target/'
 
 #--------------------------------------------------------------------
@@ -52,12 +54,12 @@ def loadSettings (component, module):
 	return result
 
 #====================================================================
-# 
+#
 # def assembleFrontend (frontend, versions):
 # 	result = {}
 # 	settings = loadSettings('frontend', frontend)
 # 	builder = frontendBuilder.FrontendBuilder(frontend, settings, projectBaseDir())
-# 	
+#
 # 	for version in versions:
 # 		if version == 'install':
 # 			result[version] = builder.assembleInstallVersion()
@@ -65,22 +67,22 @@ def loadSettings (component, module):
 # 			result[version] = builder.assembleDebugVersion()
 # 		else:
 # 			raise Exception('unrecognized version: ' + version)
-# 	
+#
 # 	return result
-# 
+#
 #====================================================================
 
 def assembleBackend (backend, frontends, versions):
 	settings = loadSettings('backend', backend)
-	
+
 	builderModuleName = backend + 'Builder'
 	builderClassName  = backend.capitalize() + 'Builder'
 	#print ("BUILD BACKENDS - module: " + builderModuleName + " , class: " + builderClassName)
 	builderModule  = __import__(builderModuleName)
 	builderClass   = getattr(builderModule, builderClassName)
-	
+
 	backendBuilder = builderClass(projectTargetDir(), frontends, versions, settings)
-	backendBuilder.run()	
+	backendBuilder.run()
 
 #====================================================================
 
@@ -120,17 +122,14 @@ def clean ():
 
 def usage (message):
 	if message != None:
-		print "ERROR: " + message
-	
-	print
-	# print "build clean"
-	# print "build clean install"
-	print "build install --ALL"
-	print "build install debug --ALL"
-	print "build install debug development --ALL"
-	# print "build clean install debug --ALL"
-	print "build install debug --backends php python --frontends beta gamma"
-	print "build install debug development --backends php python --frontends beta gamma gamma.mobile"
+		print("ERROR: " + message)
+
+	print()
+	print("build install --ALL")
+	print("build install debug --ALL")
+	print("build install debug development --ALL")
+	print("build install debug --backends php python --frontends beta gamma")
+	print("build install debug development --backends php python --frontends beta gamma gamma.mobile")
 	exit(1)
 
 #--------------------------------------------------------------------
@@ -155,7 +154,7 @@ def main ():
 	versions = list(itertools.takewhile(lambda x: not x.startswith('--'), parameters))
 	settings['versions']  = versions;		#['debug', 'install', 'development', 'checksum']
 	parameters = deque(itertools.dropwhile(lambda x: not x.startswith('--'), parameters))
-	
+
 	if len(parameters) > 0:
 		parameter = parameters.popleft()
 		if parameter == "--ALL":
@@ -164,30 +163,30 @@ def main ():
 		else:
 			while parameter != None:
 				values = list(itertools.takewhile(lambda x: not x.startswith('--'), parameters))
-			
+
 				if parameter == "--backends":
 					settings['backends'] = values
 				elif parameter == "--frontends":
 					settings['frontends'] = values
-			
+
 				parameters = deque(itertools.dropwhile(lambda x: not x.startswith('--'), parameters))
 				if parameters:
 					parameter = parameters.popleft()
 				else:
 					parameter = None
-	
+
 		if 'checksum' in settings['versions']:
 			if not 'backends' in settings:
 				settings['backends'] = []
 			settings['backends'].append('checksum')
-		
-		if (not settings.has_key('versions')):
+
+		if ('versions' not in settings):
 			usage("missing 'versions'")
-		if (not settings.has_key('frontends')):
+		if ('frontends' not in settings):
 			usage("missing 'frontends'")
-		if (not settings.has_key('backends')):
+		if ('backends' not in settings):
 			usage("missing 'backends'")
-		
+
 		build(settings, currentRepository)
 	else:
 		usage("Suggestions on how to call the 'build' script:")
