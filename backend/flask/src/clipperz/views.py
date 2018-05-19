@@ -96,7 +96,41 @@ def dump(frontend_version):
         'userDetails':          user.header,
         'statistics':           user.statistics,
         'userDetailsVersion':   user.version,
-        'records':              records
+        'records':              records,
+        # TODO: Model this
+        'accountInfo': {
+            'features': [
+                'UPDATE_CREDENTIALS',
+                'EDIT_CARD',
+                'CARD_DETAILS',
+                'ADD_CARD',
+                'DELETE_CARD',
+                'OFFLINE_COPY',
+                'LIST_CARDS'
+            ],
+            'paramentVerificationPending': False,
+            'currentSubscriptionType': 'EARLY_ADOPTER',
+            'isExpiring': False,
+            'latestActiveLevel': 'EARLY_ADOPTER',
+            'payments': [],
+            'featureSet': 'FULL',
+            'latestActiveThreshold': -1.0,
+            'referenceDate': str(datetime.now()),
+            'isExpired': False,
+            'expirationDate': str(datetime(4001, 1, 1)),
+            'offlineCopyNeeded': True,
+            'certificateQuota': {
+                'totalNumber': 3,
+                'used': {
+                    'requested': 0,
+                    'published': 0
+                }
+            },
+            'attachmentQuota': {
+                'available': 104857600,
+                'used': 0
+            },
+        },
     }
 
     offline_data_placeholder = (
@@ -106,17 +140,19 @@ def dump(frontend_version):
            _clipperz_dump_data_ = {user_data}
            Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({{'type':'OFFLINE_COPY', 'typeDescription':'Offline copy'}});
            Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
-        ''').format(user_data=json.dumps(user_data))
+        ''').format(user_data=json.dumps(user_data, indent=2))
 
 
-    with open(join(dirname(__file__), '..', 
+    with open(join(dirname(__file__), '..',
                            frontend_version, 'index.html')) as f:
         offline_dump = f.read()
 
     offline_dump = offline_dump.replace('/*offline_data_placeholder*/',
                                         offline_data_placeholder)
     response = make_response(offline_dump)
-    content_disposition = "attachment; filename='Clipperz.html'"
+    now = datetime.now()
+    fname = now.strftime('%Y%m%d%H%m_clipperz_offline.html')
+    content_disposition = 'attachment; filename={0}'.format(fname)
     response.headers['Content-Disposition'] = content_disposition
 
     return response
