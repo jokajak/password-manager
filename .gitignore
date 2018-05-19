@@ -1,7 +1,9 @@
 target
 *.pyc
-backend/java
-scripts/builder/backends/javaBuilder.py
-scripts/btcTranfer
-scripts/deltaDeploy
+/backend/java
+/scripts/builder/backends/javaBuilder.py
+/scripts/btcTranfer
+/scripts/deltaDeploy
 /.project
+/.dockerignore
+/.vscode
