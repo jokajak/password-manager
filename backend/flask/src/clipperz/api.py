@@ -34,7 +34,6 @@ def clipperzHash(aString):
     result = hashlib.sha256()
     result.update(firstRound.digest())
     result = result.hexdigest()
-    app.logger.debug('(in) %s: %s (out)', aString, result)
 
     return result
 # ==============================================================================
@@ -151,7 +150,6 @@ class handshake(HandlerMixin):
         session['b'] = randomSeed()
         k = '0x64398bff522814e306a97cb9bfc4364b7eed16a8c17c5208a40a2bad2933c8e'
         k = long(k, 16)
-        app.logger.debug('k: %s (%s)', k, hex(k))
         session['B'] = hex(k * long("0x%s" % session['v'], 16) +
                            pow(self.srp_g,
                                long("0x%s" % session['b'], 16),
@@ -272,7 +270,7 @@ class handshake(HandlerMixin):
             db.session.add(otp)
             db.session.commit()
         except NoResultFound as details:
-            app.logger.debug('OTP No Results Found: ', details)
+            app.logger.warn('OTP No Results Found: ', details)
 
         return jsonify({'result': result})
 
@@ -689,6 +687,37 @@ class message(HandlerMixin):
         No idea how it works.
         """
         return jsonify({'result': {}})
+
+    @login_required
+    def getAllRecordDetails(self, parameters, request):
+        """
+        Returns all records
+
+        Used for printing/json
+        """
+        if 'srpSharedSecret' not in parameters:
+            raise InvalidUsage(
+                'Mal-formed message format.',
+                status_code=400)
+        srpSharedSecret = parameters['srpSharedSecret']
+        if (srpSharedSecret != session['K'] and session['User'] != g.user):
+            raise InvalidUsage(
+                'Your session is incorrect, please re-authenticate',
+                status_code=401)
+
+        try:
+            user = User().query.filter_by(username=session['C']).one()
+        except NoResultFound:
+            raise InvalidUsage(
+                'Your session is incorrect, please re-authenticate',
+                status_code=401)
+
+        result = {}
+
+        records = user.records
+        for record in records:
+            result[record.reference] = record.to_dict()
+        return jsonify({'result': result})
 
 
 class logout(HandlerMixin):

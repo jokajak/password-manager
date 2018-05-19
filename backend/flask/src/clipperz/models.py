@@ -110,11 +110,28 @@ class RecordVersion(db.Model):
         self.previous_version_key = recordVersionData['previousVersionKey']
         self.update_date = datetime.datetime.utcnow()
         self.access_date = datetime.datetime.utcnow()
+        if ('header' in recordVersionData):
+            self.header = recordVersionData['header']
+        else:
+            self.header = '###'
 
         self.record.update(someData['record'], self)
 
     def access(self):
         self.access_date = datetime.datetime.now()
+
+    def to_dict(self):
+        result = {
+            'reference': self.reference,
+            'updateDate': self.update_date,
+            'data': self.data,
+            'accessDate': self.access_date,
+            'creationDate': self.creation_date,
+            'version': self.api_version,
+            'header': self.header
+        }
+
+        return result
 # ------------------------------------------------------------------------------
 
 
@@ -163,6 +180,26 @@ class Record(db.Model):
 
     def access(self):
         self.access_date = datetime.datetime.now()
+
+    def to_dict(self):
+        versions = {}
+
+        for version in self.record_versions:
+            versions[version.reference] = version.to_dict()
+
+        result = {
+            'reference': self.reference,
+            'updateDate': self.update_date,
+            'data': self.data,
+            'accessDate': self.access_date,
+            'attachmentStatus': 0,
+            'creationDate': self.creation_date,
+            'version': self.api_version,
+            'currentVersion': self.current_record_version.reference,
+            'oldestUsedEncryptedVersion': self.api_version,  # TODO: Make this an attribute of the model
+            'versions': versions
+        }
+        return result
 
 # ------------------------------------------------------------------------------
 
