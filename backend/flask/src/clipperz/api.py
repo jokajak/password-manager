@@ -105,7 +105,11 @@ class handshake(HandlerMixin):
         session['A'] = parameters['parameters']['A']
         app.logger.debug('username: %s', session['C'])
 
-        user = User().query.filter_by(username=session['C']).one()
+        try:
+            user = User().query.filter_by(username=session['C']).one()
+        except NoResultFound:
+            user = None
+
 
         if user is not None and session['A'] != 0:
             session['s'] = user.srp_s
@@ -218,7 +222,7 @@ class handshake(HandlerMixin):
             result['connectionId'] = ''
             result['loginInfo'] = {}
             result['loginInfo']['current'] = {
-                'date': datetime.now(),
+                'date': str(datetime.now()),
                 'ip': request.remote_addr,
                 'browser': request.user_agent.browser,
                 'operatingSystem': request.user_agent.platform,
@@ -267,7 +271,7 @@ class handshake(HandlerMixin):
                     otp.status = 'DISABLED'
             db.session.add(otp)
             db.session.commit()
-        except NoResultFound, details:
+        except NoResultFound as details:
             app.logger.debug('OTP No Results Found: ', details)
 
         return jsonify({'result': result})
@@ -317,7 +321,12 @@ class message(HandlerMixin):
         #    "statistics": "",
         #    "version": "0.4"}}
         result = {}
-        user = User().query.filter_by(username=session['C']).one()
+        try:
+            user = User().query.filter_by(username=session['C']).one()
+        except NoResultFound:
+            raise InvalidUsage(
+                'Your session is incorrect, please re-authenticate',
+                status_code=401)
 
         records_stats = {}
         for record in user.records:
@@ -642,7 +651,10 @@ class message(HandlerMixin):
                 'Your session is incorrect, please re-authenticate',
                 status_code=401)
 
-        user = User().query.filter_by(username=session['C']).one()
+        try:
+            user = User().query.filter_by(username=session['C']).one()
+        except NoResultFound:
+            user = None
 
         if (user != g.user):
             raise InvalidUsage(
