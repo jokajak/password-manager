@@ -4,7 +4,7 @@ from clipperz import app, db, lm
 from .models import User
 from .api import *  # NOQA
 from .exceptions import InvalidUsage
-from flask.ext.login import login_required
+from flask_login import login_required
 from os.path import dirname, join
 import json
 from datetime import timedelta
@@ -41,7 +41,10 @@ def shutdown_session(exception=None):
 @login_required
 def dump(frontend_version):
     """Return JSON for a user's data."""
-    user = User().query.filter_by(username=session['C']).one()
+    try:
+        user = User().query.filter_by(username=session['C']).one()
+    except NoResultFound:
+        user = None
 
     if (user != g.user):
         raise InvalidUsage(

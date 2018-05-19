@@ -1,11 +1,14 @@
 """Clipperz API handler."""
+import hashlib
 import json
 import random
-import hashlib
+import sys
+if sys.version_info > (3,):
+    long = int
 
 from flask import jsonify, session, g
 from datetime import datetime
-from flask.ext.login import logout_user, current_user, login_user, \
+from flask_login import logout_user, current_user, login_user, \
     login_required
 from sqlalchemy.orm.exc import NoResultFound
 from clipperz import app, db
@@ -27,11 +30,13 @@ def clipperzHash(aString):
     sha256(sha256(aString))
     """
     firstRound = hashlib.sha256()
-    firstRound.update(aString)
+    firstRound.update(aString.encode('utf-8'))
     result = hashlib.sha256()
     result.update(firstRound.digest())
+    result = result.hexdigest()
+    app.logger.debug('(in) %s: %s (out)', aString, result)
 
-    return result.hexdigest()
+    return result
 # ==============================================================================
 # Method handlers
 # ==============================================================================
@@ -88,7 +93,7 @@ class handshake(HandlerMixin):
 
     srp_n = '115b8b692e0e045692cf280b436735c77a5a9e8a9e7ed56c965f87db5b2a2ece3'
     srp_g = 2
-    srp_n = long(srp_n, 16)
+    srp_n = int(srp_n, 16)
 
     def connect(self, parameters, request):
         """Process a connect request.
@@ -129,7 +134,7 @@ class handshake(HandlerMixin):
                     db.session.add(one_time_password)
                     db.session.commit()
 
-                except Exception, detail:
+                except Exception as detail:
                     app.logger.error("connect.optid: " + str(detail))
 
         else:
@@ -178,9 +183,9 @@ class handshake(HandlerMixin):
                 'payments': [],
                 'featureSet': 'FULL',
                 'latestActiveThreshold': -1.0,
-                'referenceDate': datetime.now(),
+                'referenceDate': str(datetime.now()),
                 'isExpired': False,
-                'expirationDate': datetime(4001, 1, 1)
+                'expirationDate': str(datetime(4001, 1, 1))
             },
         }
 

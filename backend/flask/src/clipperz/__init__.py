@@ -1,10 +1,10 @@
 import os
 
 from flask import Flask
-from flask.ext.login import LoginManager
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
 from simplekv.db.sql import SQLAlchemyStore
-from flask.ext.kvsession import KVSessionExtension
+from flask_kvsession import KVSessionExtension
 from config import *
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
