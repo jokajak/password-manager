@@ -1,7 +1,6 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-
 if os.environ.get('DATABASE_URL') is None:
     SQLALCHEMY_DATABASE_URI = ('sqlite:///' + os.path.join(basedir, 'app.db') +
                                '?check_same_thread=False')
@@ -9,9 +8,9 @@ else:
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 SQLALCHEMY_RECORD_QUERIES = True
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 ADMINS = ['you@example.com']
-
 
 class Config(object):
     DEBUG = False
@@ -22,13 +21,29 @@ class Config(object):
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI
     SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
-class DevelopmentConfig(Config):
+class Development(Config):
     DEBUG = True
+    # log all the statements issued to stderr
     SQLALCHEMY_ECHO = True
+    # Enables get_debug_queries
     SQLALCHEMY_RECORD_QUERIES = True
 
 
-class TestingConfig(Config):
+class Testing(Config):
     TESTING = True
+
+
+class Production(Config):
+    DEBUG = False
+    TESTING = False
+
+
+
+config = {
+    'development': Development,
+    'testing': Testing,
+    'production': Production,
+}
